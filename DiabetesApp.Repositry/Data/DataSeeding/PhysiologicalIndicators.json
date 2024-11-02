@@ -1,0 +1,74 @@
+[
+  {
+    "Date": "2023-11-01",
+    "Time": "10:30:00",
+    "HealthStatus": "Good",
+    "GlucoseLevel": 5.5,
+    "BloodPressure": 120.0,
+    "Temperature": 36.7,
+    "PatientId": 1
+  },
+  {
+    "Date": "2023-11-02",
+    "Time": "12:00:00",
+    "HealthStatus": "Good",
+    "GlucoseLevel": 5.4,
+    "BloodPressure": 119.0,
+    "Temperature": 36.8,
+    "PatientId": 1
+  },
+  {
+    "Date": "2023-11-01",
+    "Time": "11:00:00",
+    "HealthStatus": "Good",
+    "GlucoseLevel": 5.6,
+    "BloodPressure": 118.0,
+    "Temperature": 36.9,
+    "PatientId": 2
+  },
+  {
+    "Date": "2023-11-02",
+    "Time": "13:00:00",
+    "HealthStatus": "Stable",
+    "GlucoseLevel": 5.5,
+    "BloodPressure": 117.5,
+    "Temperature": 37.0,
+    "PatientId": 2
+  },
+  {
+    "Date": "2023-11-01",
+    "Time": "10:00:00",
+    "HealthStatus": "Stable",
+    "GlucoseLevel": 5.7,
+    "BloodPressure": 121.0,
+    "Temperature": 36.6,
+    "PatientId": 3
+  },
+  {
+    "Date": "2023-11-02",
+    "Time": "11:30:00",
+    "HealthStatus": "Stable",
+    "GlucoseLevel": 5.6,
+    "BloodPressure": 120.5,
+    "Temperature": 36.7,
+    "PatientId": 3
+  },
+  {
+    "Date": "2023-11-01",
+    "Time": "14:00:00",
+    "HealthStatus": "Good",
+    "GlucoseLevel": 5.3,
+    "BloodPressure": 118.5,
+    "Temperature": 36.5,
+    "PatientId": 4
+  },
+  {
+    "Date": "2023-11-02",
+    "Time": "16:00:00",
+    "HealthStatus": "Good",
+    "GlucoseLevel": 5.2,
+    "BloodPressure": 117.0,
+    "Temperature": 36.6,
+    "PatientId": 4
+  }
+]

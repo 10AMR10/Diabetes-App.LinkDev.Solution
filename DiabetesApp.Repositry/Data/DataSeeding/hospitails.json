@@ -1,0 +1,142 @@
+[
+  {
+    "HospitalName": "Springfield General Hospital",
+    "Location": "Downtown Springfield",
+    "Country": "USA",
+    "City": "Springfield",
+    "Address": "100 Main St, Springfield, IL",
+    "Province": "Illinois",
+    "Patients": [
+      {
+        "Name": "Alice Johnson",
+        "Age": 30,
+        "Gender": "Female",
+        "PhoneNumber": "123-456-7890",
+        "BirthCount": 2,
+        "IsPregnant": false,
+        "Address": "123 Maple St, Springfield, IL",
+        "HospitalId": 1,
+        "PhysiologicalIndicatorsList": [
+          {
+            "Date": "2023-11-01",
+            "Time": "10:30:00",
+            "HealthStatus": "Good",
+            "GlucoseLevel": 5.5,
+            "BloodPressure": 120.0,
+            "Temperature": 36.7,
+            "PatientId": 1
+          },
+          {
+            "Date": "2023-11-02",
+            "Time": "12:00:00",
+            "HealthStatus": "Good",
+            "GlucoseLevel": 5.4,
+            "BloodPressure": 119.0,
+            "Temperature": 36.8,
+            "PatientId": 1
+          }
+        ]
+      },
+      {
+        "Name": "Bob Smith",
+        "Age": 45,
+        "Gender": "Male",
+        "PhoneNumber": "987-654-3210",
+        "BirthCount": 0,
+        "IsPregnant": false,
+        "Address": "456 Oak St, Springfield, IL",
+        "HospitalId": 1,
+        "PhysiologicalIndicatorsList": [
+          {
+            "Date": "2023-11-01",
+            "Time": "11:00:00",
+            "HealthStatus": "Good",
+            "GlucoseLevel": 5.6,
+            "BloodPressure": 118.0,
+            "Temperature": 36.9,
+            "PatientId": 2
+          },
+          {
+            "Date": "2023-11-02",
+            "Time": "13:00:00",
+            "HealthStatus": "Stable",
+            "GlucoseLevel": 5.5,
+            "BloodPressure": 117.5,
+            "Temperature": 37.0,
+            "PatientId": 2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "HospitalName": "Metro Health Hospital",
+    "Location": "West Springfield",
+    "Country": "USA",
+    "City": "Springfield",
+    "Address": "200 Elm St, Springfield, IL",
+    "Province": "Illinois",
+    "Patients": [
+      {
+        "Name": "Cathy Williams",
+        "Age": 28,
+        "Gender": "Female",
+        "PhoneNumber": "555-123-4567",
+        "BirthCount": 1,
+        "IsPregnant": true,
+        "Address": "789 Pine St, Springfield, IL",
+        "HospitalId": 2,
+        "PhysiologicalIndicatorsList": [
+          {
+            "Date": "2023-11-01",
+            "Time": "10:00:00",
+            "HealthStatus": "Stable",
+            "GlucoseLevel": 5.7,
+            "BloodPressure": 121.0,
+            "Temperature": 36.6,
+            "PatientId": 3
+          },
+          {
+            "Date": "2023-11-02",
+            "Time": "11:30:00",
+            "HealthStatus": "Stable",
+            "GlucoseLevel": 5.6,
+            "BloodPressure": 120.5,
+            "Temperature": 36.7,
+            "PatientId": 3
+          }
+        ]
+      },
+      {
+        "Name": "David Brown",
+        "Age": 60,
+        "Gender": "Male",
+        "PhoneNumber": "444-555-6666",
+        "BirthCount": 3,
+        "IsPregnant": false,
+        "Address": "321 Birch St, Springfield, IL",
+        "HospitalId": 2,
+        "PhysiologicalIndicatorsList": [
+          {
+            "Date": "2023-11-01",
+            "Time": "14:00:00",
+            "HealthStatus": "Good",
+            "GlucoseLevel": 5.3,
+            "BloodPressure": 118.5,
+            "Temperature": 36.5,
+            "PatientId": 4
+          },
+          {
+            "Date": "2023-11-02",
+            "Time": "16:00:00",
+            "HealthStatus": "Good",
+            "GlucoseLevel": 5.2,
+            "BloodPressure": 117.0,
+            "Temperature": 36.6,
+            "PatientId": 4
+          }
+        ]
+      }
+    ]
+  }
+]

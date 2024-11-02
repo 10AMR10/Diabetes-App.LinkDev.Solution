@@ -4,31 +4,34 @@ using DiabetesApp.Repositry.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
 namespace DiabetesApp.Repositry.Data.Migrations
 {
-    [DbContext(typeof(HospitalContext))]
-    partial class HospitalContextModelSnapshot : ModelSnapshot
+    [DbContext(typeof(HospitailContext))]
+    [Migration("20241102180254_EntryPoint")]
+    partial class EntryPoint
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.23")
+                .HasAnnotation("ProductVersion", "8.0.10")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
-            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
+            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("DiabetesApp.Core.Enitities.Hospital", b =>
+            modelBuilder.Entity("DiabetesApp.Core.Enitities.Hospitail", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Address")
                         .IsRequired()
@@ -65,7 +68,7 @@ namespace DiabetesApp.Repositry.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Address")
                         .IsRequired()
@@ -108,12 +111,12 @@ namespace DiabetesApp.Repositry.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<double>("BloodPressure")
                         .HasColumnType("float");
 
-                    b.Property<DateTime>("Date")
+                    b.Property<DateOnly>("Date")
                         .HasColumnType("date");
 
                     b.Property<double>("GlucoseLevel")
@@ -129,7 +132,7 @@ namespace DiabetesApp.Repositry.Data.Migrations
                     b.Property<double>("Temperature")
                         .HasColumnType("float");
 
-                    b.Property<TimeSpan>("Time")
+                    b.Property<TimeOnly>("Time")
                         .HasColumnType("time");
 
                     b.HasKey("Id");
@@ -141,7 +144,7 @@ namespace DiabetesApp.Repositry.Data.Migrations
 
             modelBuilder.Entity("DiabetesApp.Core.Enitities.Patient", b =>
                 {
-                    b.HasOne("DiabetesApp.Core.Enitities.Hospital", "Hospital")
+                    b.HasOne("DiabetesApp.Core.Enitities.Hospitail", "Hospital")
                         .WithMany("Patients")
                         .HasForeignKey("HospitalId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -161,7 +164,7 @@ namespace DiabetesApp.Repositry.Data.Migrations
                     b.Navigation("Patient");
                 });
 
-            modelBuilder.Entity("DiabetesApp.Core.Enitities.Hospital", b =>
+            modelBuilder.Entity("DiabetesApp.Core.Enitities.Hospitail", b =>
                 {
                     b.Navigation("Patients");
                 });

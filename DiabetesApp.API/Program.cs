@@ -1,3 +1,5 @@
+using DiabetesApp.Core.Repositry.contract;
+using DiabetesApp.Repositry;
 using DiabetesApp.Repositry.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,20 +18,21 @@ namespace DiabetesApp.API
 			// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 			builder.Services.AddEndpointsApiExplorer();
 			builder.Services.AddSwaggerGen();
-			builder.Services.AddDbContext<HospitalContext>((option) =>
+			builder.Services.AddDbContext<HospitailContext>((option) =>
 			{
 				option.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 			});
-
+			builder.Services.AddScoped(typeof(IGenericRepositry<>), typeof(GenericRepositry<>));
 			var app = builder.Build();
 
 			using var scope = app.Services.CreateScope();
 			var service = scope.ServiceProvider;
-			var _dbContext=service.GetRequiredService<HospitalContext>();
+			var _dbContext=service.GetRequiredService<HospitailContext>();
 			var loggerFactory= service.GetRequiredService<ILoggerFactory>();
 			try
 			{
-				await _dbContext.Database.MigrateAsync();
+				
+				await HospitailContextSeeding.SeedingAsync(_dbContext);
 			}
 			catch (Exception ex)
 			{

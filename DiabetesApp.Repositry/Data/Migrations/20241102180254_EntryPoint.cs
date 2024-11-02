@@ -5,8 +5,10 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace DiabetesApp.Repositry.Data.Migrations
 {
+    /// <inheritdoc />
     public partial class EntryPoint : Migration
     {
+        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
@@ -59,8 +61,8 @@ namespace DiabetesApp.Repositry.Data.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Date = table.Column<DateTime>(type: "date", nullable: false),
-                    Time = table.Column<TimeSpan>(type: "time", nullable: false),
+                    Date = table.Column<DateOnly>(type: "date", nullable: false),
+                    Time = table.Column<TimeOnly>(type: "time", nullable: false),
                     HealthStatus = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     GlucoseLevel = table.Column<double>(type: "float", nullable: false),
                     BloodPressure = table.Column<double>(type: "float", nullable: false),
@@ -89,6 +91,7 @@ namespace DiabetesApp.Repositry.Data.Migrations
                 column: "PatientId");
         }
 
+        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(

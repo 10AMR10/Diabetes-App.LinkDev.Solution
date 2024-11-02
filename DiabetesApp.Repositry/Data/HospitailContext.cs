@@ -9,16 +9,16 @@ using System.Threading.Tasks;
 
 namespace DiabetesApp.Repositry.Data
 {
-	public class HospitalContext:DbContext
+	public class HospitailContext:DbContext
 	{
-        public HospitalContext(DbContextOptions dbContextOptions):base(dbContextOptions)
+        public HospitailContext(DbContextOptions dbContextOptions):base(dbContextOptions)
         {          
         }
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
 			modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
 		}
-		public DbSet<Hospital> hospitals { get; set; }
+		public DbSet<Hospitail> hospitals { get; set; }
         public DbSet<Patient> patients { get; set; }
         public DbSet<PhysiologicalIndicators> physiologicalIndicators { get; set; }
     }

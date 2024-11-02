@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DiabetesApp.Core.Enitities
 {
-	public class Hospital:BaseEntity
+	public class Hospitail:BaseEntity
 	{
 		  
 		public string HospitalName { get; set; }
