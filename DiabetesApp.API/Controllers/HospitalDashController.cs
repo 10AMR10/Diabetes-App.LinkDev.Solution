@@ -41,7 +41,7 @@ namespace DiabetesApp.API.Controllers
 			if (hospital is null)
 				return NotFound(new ApiResponse(404));
 
-			hospital=_mapper.Map<Hospitail>(input);
+			_mapper.Map(input, hospital);
 			 _unitOfWork.GetRepo<Hospitail>().Update(hospital);
 			var res= await _unitOfWork.CompeleteAsync();
 			if (res > 0)

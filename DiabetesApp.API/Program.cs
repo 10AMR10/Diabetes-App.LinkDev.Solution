@@ -7,7 +7,11 @@ using DiabetesApp.Repositry.Identity.Seeding;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel;
+using System.Text.Json.Serialization;
 using Talabat.APIs.Errors;
+using System.Text.Json;
+
 
 namespace DiabetesApp.API
 {
@@ -22,6 +26,7 @@ namespace DiabetesApp.API
 			// Add services to the container.
 
 			builder.Services.AddControllers();
+
 			// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 			builder.Services.AddEndpointsApiExplorer();
 			builder.Services.AddSwaggerGen();

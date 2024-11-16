@@ -6,7 +6,7 @@ namespace DiabetesApp.API.Dtos
 	{
         public int Id { get; set; }
 		public string Name { get; set; }
-		public ICollection<PhysiologicalIndicatorDto> PhysiologicalIndicatorsList { get; set; } = new HashSet<PhysiologicalIndicatorDto>();
+		public ICollection<PhysiologicalIndicatorToRetunrDto> PhysiologicalIndicatorsList { get; set; } = new HashSet<PhysiologicalIndicatorToRetunrDto>();
         public string Hospital { get; set; }
     }
 }
