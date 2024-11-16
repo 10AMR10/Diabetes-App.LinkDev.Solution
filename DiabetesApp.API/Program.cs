@@ -19,7 +19,7 @@ namespace DiabetesApp.API
 	{
 		public async static Task Main(string[] args)
 		{
-			// hello step 1
+			// hello step 2
 			#region Services
 			var builder = WebApplication.CreateBuilder(args);
 
