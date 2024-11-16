@@ -1,5 +1,6 @@
 ﻿using DiabetesApp.Core.Enitities;
 using DiabetesApp.Core.Repositry.contract;
+using DiabetesApp.Core.specificaitons;
 using DiabetesApp.Repositry.Data;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -20,22 +21,46 @@ namespace DiabetesApp.Repositry
 		}
 
 
-
 		public async Task<IEnumerable<T>?> GetAllAsync()
 		{
-			if (typeof(T) == typeof(Patient))
-			{
-				return (IEnumerable<T>)await _hospitalContext.patients.AsNoTracking().ToListAsync();
-			}
-			return null;
+			
+			return await _hospitalContext.Set<T>().ToListAsync(); ;
 		}
 
 		public async Task<T?> GetAsync(string name)
 		{
-			if (typeof(T) == typeof(Patient))
-				return  await _hospitalContext.Set<Patient>().Where(x=> x.Name==name).Include(x => x.PhysiologicalIndicatorsList).AsNoTracking().FirstOrDefaultAsync() as T;
-			return null;
+			
+				return  await _hospitalContext.Set<T>().FindAsync(name);
+			
+		}
+		public async Task<T?> GetByIdAsync(int id)
+		{
+			return await _hospitalContext.Set<T>().FindAsync(id);
+		}
+		public async Task AddAsync(T entity)
+			=> await _hospitalContext.Set<T>().AddAsync(entity);
+
+		public void Delete(T entity)
+			=> _hospitalContext.Set<T>().Remove(entity);
+
+		public void Update(T entity)
+			=> _hospitalContext.Set<T>().Update(entity);
+
+		public async Task<IEnumerable<T>?> GetAllSpecAsync(ISpecificaiton<T> spec)
+		{
+
+			return await ApplySpecification(spec).ToListAsync();
 		}
 
+
+		public async Task<T?> GetSpecAsync(ISpecificaiton<T> spec)
+		{
+			return await ApplySpecification(spec).FirstOrDefaultAsync();
+		}
+		private IQueryable<T> ApplySpecification(ISpecificaiton<T> spec)
+		{
+			return SpecificationEvaluator<T>.GetQuery(_hospitalContext.Set<T>(), spec);
+		}
 	}
 }
+

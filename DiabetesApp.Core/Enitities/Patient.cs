@@ -24,7 +24,7 @@ namespace DiabetesApp.Core.Enitities
         public int HospitalId { get; set; }
 
         
-        public ICollection<PhysiologicalIndicators> PhysiologicalIndicatorsList { get; set; }= new HashSet<PhysiologicalIndicators>();	
+        public ICollection<PhysiologicalIndicators>? PhysiologicalIndicatorsList { get; set; }= new HashSet<PhysiologicalIndicators>();	
 	}
 
 }

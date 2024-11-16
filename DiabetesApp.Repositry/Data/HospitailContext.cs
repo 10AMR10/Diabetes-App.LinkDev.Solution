@@ -11,7 +11,7 @@ namespace DiabetesApp.Repositry.Data
 {
 	public class HospitailContext:DbContext
 	{
-        public HospitailContext(DbContextOptions dbContextOptions):base(dbContextOptions)
+        public HospitailContext(DbContextOptions<HospitailContext> dbContextOptions):base(dbContextOptions)
         {          
         }
 		protected override void OnModelCreating(ModelBuilder modelBuilder)

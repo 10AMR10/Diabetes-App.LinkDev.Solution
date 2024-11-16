@@ -16,7 +16,8 @@ namespace DiabetesApp.Core.Enitities
 		public string Address { get; set; }
 		public string Province { get; set; }
 
-		public ICollection<Patient> Patients { get; set; }= new HashSet<Patient>();	
+		public ICollection<Patient>? Patients { get; set; }= new HashSet<Patient>();	
+
 
 
 	}
