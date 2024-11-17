@@ -11,6 +11,7 @@ using System.ComponentModel;
 using System.Text.Json.Serialization;
 using Talabat.APIs.Errors;
 using System.Text.Json;
+using System.Runtime.Intrinsics.X86;
 
 
 namespace DiabetesApp.API
@@ -22,6 +23,17 @@ namespace DiabetesApp.API
 			// hello step 2
 			#region Services
 			var builder = WebApplication.CreateBuilder(args);
+
+			builder.Services.AddCors(options =>
+			{
+				options.AddPolicy("AllowAll",
+					builder =>
+					{
+						builder.AllowAnyOrigin()
+							   .AllowAnyMethod()
+							   .AllowAnyHeader();
+					});
+			});
 
 			// Add services to the container.
 
@@ -68,6 +80,7 @@ namespace DiabetesApp.API
 			});
 			builder.Services.AddAutoMapper(typeof(MappingProfile));
 			builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+			builder.Services.AddHttpClient();
 
 
 			#endregion
@@ -95,13 +108,17 @@ namespace DiabetesApp.API
 
 
 			// Configure the HTTP request pipeline.
-			if (app.Environment.IsDevelopment())
-			{
+			
 				app.UseSwagger();
 				app.UseSwaggerUI();
-			}
+			
 
 			app.UseHttpsRedirection();
+
+			// Use the CORS policy
+			app.UseCors("AllowAll");
+
+
 			app.UseAuthentication();
 			app.UseAuthorization();
 

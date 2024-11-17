@@ -4,6 +4,7 @@ using DiabetesApp.Repositry.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DiabetesApp.Repositry.Data.Migrations
 {
     [DbContext(typeof(HospitailContext))]
-    partial class HospitailContextModelSnapshot : ModelSnapshot
+    [Migration("20241116213945_AddHealthStatusTypes")]
+    partial class AddHealthStatusTypes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -76,9 +79,6 @@ namespace DiabetesApp.Repositry.Data.Migrations
 
                     b.Property<int>("BirthCount")
                         .HasColumnType("int");
-
-                    b.Property<string>("Code")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Gender")
                         .IsRequired()

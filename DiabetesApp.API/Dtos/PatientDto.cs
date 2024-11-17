@@ -22,7 +22,8 @@ namespace DiabetesApp.API.Dtos
 		[Required]
 		public string Address { get; set; }
 		[Required]
-
+		public string? Code { get; set; }
+		[Required]
 		public int HospitalId { get; set; }
 	}
 }

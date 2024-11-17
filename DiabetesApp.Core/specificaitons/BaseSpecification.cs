@@ -13,7 +13,8 @@ namespace DiabetesApp.Core.specificaitons
 		public Expression<Func<T, bool>>? Criteria { get; set; } = null;
 
 		public List<Expression<Func<T, object>>> Includes { get; set; } = new List<Expression<Func<T, object>>>();
-        public BaseSpecification()
+		public Expression<Func<T, object>> OrderBy { get; set; } = null;
+		public BaseSpecification()
         {
             
         }
