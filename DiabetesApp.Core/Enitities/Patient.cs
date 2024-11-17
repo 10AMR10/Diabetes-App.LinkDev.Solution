@@ -22,9 +22,11 @@ namespace DiabetesApp.Core.Enitities
 
 		public Hospitail Hospital { get; set; }
         public int HospitalId { get; set; }
+        public string? LatestHealthStatus { get; set; }
+		public string? Code { get; set; }
 
-        
-        public ICollection<PhysiologicalIndicators>? PhysiologicalIndicatorsList { get; set; }= new HashSet<PhysiologicalIndicators>();	
+
+		public ICollection<PhysiologicalIndicators>? PhysiologicalIndicatorsList { get; set; }= new HashSet<PhysiologicalIndicators>();	
 	}
 
 }

@@ -6,11 +6,14 @@ namespace DiabetesApp.API.Dtos
 	public class PhysiologicalIndicatorsDto
 	{
 		[Required]
-		public DateOnly Date { get; set; }
+		public string Date { get; set; }
 		[Required]
-		public TimeOnly Time { get; set; }
-		[Required]
-		public string HealthStatus { get; set; }
+		public string Time { get; set; }
+		
+		public double? HealthStatusScore { get; set; }
+		
+
+		public string? HealthStatus { get; set; }
 		[Required]
 		public double GlucoseLevel { get; set; }
 		[Required]
