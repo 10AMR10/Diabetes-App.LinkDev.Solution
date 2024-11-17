@@ -11,6 +11,7 @@ namespace DiabetesApp.Repositry.Identity
 {
 	public class AppIdentityDbContext : IdentityDbContext<IdentityUser>
 	{
+		//3
 		public AppIdentityDbContext(DbContextOptions<AppIdentityDbContext> options) : base(options)
 		{
 
