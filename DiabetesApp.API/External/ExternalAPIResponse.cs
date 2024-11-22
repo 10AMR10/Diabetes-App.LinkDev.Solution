@@ -2,6 +2,7 @@
 {
 	public class ExternalAPIResponse
 	{
-		public double predictedHealthStatusScore { get; set; }
+		public double predictedHealthConditionScore { get; set; }
+		
 	}
 }

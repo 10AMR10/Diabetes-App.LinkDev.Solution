@@ -12,7 +12,7 @@ namespace DiabetesApp.Core.Repositry.contract
 	{
 		public Task<IEnumerable<T>?> GetAllAsync();
 		public Task<T?> GetAsync(string name);
-		public Task<T?> GetByIdAsync(int id);
+		public Task<T?> GetByIdAsync(int? id);
 		public Task<IEnumerable<T>?> GetAllSpecAsync(ISpecificaiton<T> spec);
 		public Task<T?> GetSpecAsync(ISpecificaiton<T> spec);
 		public Task AddAsync(T entity);

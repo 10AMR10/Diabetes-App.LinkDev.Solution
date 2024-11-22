@@ -33,7 +33,7 @@ namespace DiabetesApp.Repositry
 				return  await _hospitalContext.Set<T>().FindAsync(name);
 			
 		}
-		public async Task<T?> GetByIdAsync(int id)
+		public async Task<T?> GetByIdAsync(int? id)
 		{
 			return await _hospitalContext.Set<T>().FindAsync(id);
 		}

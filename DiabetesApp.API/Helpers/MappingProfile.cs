@@ -9,7 +9,8 @@ namespace DiabetesApp.API.Helpers
         public MappingProfile()
         {
             CreateMap<Hospitail, HospitalDto>().ReverseMap();
-            CreateMap<Patient, PatientToReturnDto>()
+            CreateMap<Hospitail, HospitalToReturnDto>().ReverseMap();
+			CreateMap<Patient, PatientToReturnDto>()
                .ForMember(d => d.Hospital, o => o.MapFrom(s => s.Hospital.HospitalName ));
             CreateMap<PhysiologicalIndicators, PhysiologicalIndicatorToRetunrDto>();
             CreateMap<PatientDto, Patient>();
