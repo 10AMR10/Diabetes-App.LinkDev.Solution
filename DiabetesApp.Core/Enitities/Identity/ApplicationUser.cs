@@ -10,7 +10,7 @@ namespace DiabetesApp.Core.Enitities.Identity
 	public class ApplicationUser:IdentityUser
 	{
 		// navigitional property with hospital
-		public Hospitail?	Hospitail { get; set; }
+		
         public int? HospitalId { get; set; }
     }
 }
