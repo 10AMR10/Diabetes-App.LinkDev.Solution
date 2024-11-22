@@ -12,6 +12,12 @@ using System.Text.Json.Serialization;
 using Talabat.APIs.Errors;
 using System.Text.Json;
 using System.Runtime.Intrinsics.X86;
+using DiabetesApp.Core.Enitities.Identity;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using DiabetesApp.Core.Service.Contract;
+using DiabetesApp.Service;
 
 
 namespace DiabetesApp.API
@@ -47,14 +53,10 @@ namespace DiabetesApp.API
 				option.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 			});
 			builder.Services.AddScoped(typeof(IGenericRepositry<>), typeof(GenericRepositry<>));
-			builder.Services.AddDbContext<AppIdentityDbContext>(options =>
-			{
-				options.UseSqlServer(builder.Configuration.GetConnectionString("IdentityConnection"));
-			});
+			
 
-			builder.Services.AddIdentity<IdentityUser, IdentityRole>()
-				.AddEntityFrameworkStores<AppIdentityDbContext>()
-				.AddDefaultTokenProviders();
+			builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+				.AddEntityFrameworkStores<AppIdentityDbContext>();
 			builder.Services.Configure<IdentityOptions>(options =>
 			{
 				options.Password.RequireDigit = false;
@@ -81,6 +83,34 @@ namespace DiabetesApp.API
 			builder.Services.AddAutoMapper(typeof(MappingProfile));
 			builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 			builder.Services.AddHttpClient();
+			#region Identity
+			builder.Services.AddDbContext<AppIdentityDbContext>(options =>
+				{
+					options.UseSqlServer(builder.Configuration.GetConnectionString("IdentityConnection"));
+				});
+			builder.Services.AddAuthentication(options =>
+			{
+				options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+				options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+			})
+				.AddJwtBearer(options =>
+				{
+					options.TokenValidationParameters = new TokenValidationParameters
+					{
+						ValidateIssuer = true,
+						ValidIssuer = builder.Configuration["JWT:ValidIssuer"],
+						ValidateAudience = true,
+						ValidAudience = builder.Configuration["JWT:ValidAudience"],
+						ValidateLifetime = true,
+						ValidateIssuerSigningKey = true,
+						IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"])),
+						ClockSkew = TimeSpan.Zero
+					};
+				}); 
+			#endregion
+
+			// Register the Token Service
+			builder.Services.AddScoped<ITokentService, TokentService>();
 
 
 			#endregion
@@ -94,8 +124,9 @@ namespace DiabetesApp.API
 
 			try
 			{
-				var userManger = service.GetRequiredService<UserManager<IdentityUser>>();
-				await AppIdentityDbContextSeeding.SeedingIdentityAsync(userManger);
+				var userManger = service.GetRequiredService<UserManager<ApplicationUser>>();
+				var roleManger= service.GetRequiredService<RoleManager<IdentityRole>>();
+				await AppIdentityDbContextSeeding.SeedingIdentityAsync(userManger, roleManger);
 				await HospitailContextSeeding.SeedingAsync(_dbContext);
 			}
 			catch (Exception ex)
@@ -108,10 +139,10 @@ namespace DiabetesApp.API
 
 
 			// Configure the HTTP request pipeline.
-			
-				app.UseSwagger();
-				app.UseSwaggerUI();
-			
+
+			app.UseSwagger();
+			app.UseSwaggerUI();
+
 
 			app.UseHttpsRedirection();
 

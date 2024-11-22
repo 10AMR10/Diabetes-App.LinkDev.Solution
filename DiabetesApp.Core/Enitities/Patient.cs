@@ -20,10 +20,10 @@ namespace DiabetesApp.Core.Enitities
 		public bool IsPregnant { get; set; }
 		public string Address { get; set; } 
 
-		public Hospitail Hospital { get; set; }
-        public int HospitalId { get; set; }
         public string? LatestHealthStatus { get; set; }
 		public string? Code { get; set; }
+        public int HospitalId { get; set; }
+		public Hospitail Hospital { get; set; }
 
 
 		public ICollection<PhysiologicalIndicators>? PhysiologicalIndicatorsList { get; set; }= new HashSet<PhysiologicalIndicators>();	

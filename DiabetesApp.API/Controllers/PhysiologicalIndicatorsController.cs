@@ -2,13 +2,18 @@
 using DiabetesApp.API.Dtos;
 using DiabetesApp.API.External;
 using DiabetesApp.Core.Enitities;
+using DiabetesApp.Core.Enitities.Identity;
 using DiabetesApp.Core.Repositry.contract;
 using DiabetesApp.Core.specificaitons.patients;
 using DiabetesApp.Core.specificaitons.physiologicalIndicators;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using System.Linq;
+using System.Security.Claims;
 using System.Text.Json;
 using Talabat.APIs.Errors;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -16,6 +21,7 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace DiabetesApp.API.Controllers
 {
+	[Authorize(Roles = "Admin, Employee")]
 	[Route("api/[controller]")]
 	[ApiController]
 	public class PhysiologicalIndicatorsController : ControllerBase
@@ -23,17 +29,18 @@ namespace DiabetesApp.API.Controllers
 		private readonly IMapper _mapper;
 		private readonly IUnitOfWork _unitOfWork;
 		private readonly HttpClient _client;
+		private readonly UserManager<ApplicationUser> _userManager;
 
-
-		public PhysiologicalIndicatorsController(IMapper mapper, IUnitOfWork unitOfWork, HttpClient client)
+		public PhysiologicalIndicatorsController(IMapper mapper, IUnitOfWork unitOfWork, HttpClient client, UserManager<ApplicationUser> userManager)
 		{
 			this._mapper = mapper;
 			this._unitOfWork = unitOfWork;
 			this._client = client;
+			this._userManager = userManager;
 		}
 		// create PhysiologicalIndicators (PhysiologicalIndicatorsDto) => bool
 		[HttpPost]
-		public async Task<ActionResult<bool>> CreatePhysiologicalIndicators([FromBody] PhysiologicalIndicatorsDto input)
+		public async Task<ActionResult<bool>> CreatePhysiologicalIndicators(/*[FromBody]*/ PhysiologicalIndicatorsDto input)
 		{
 			var patient = await _unitOfWork.GetRepo<Patient>().GetByIdAsync(input.PatientId);
 			if (patient is null)
@@ -46,7 +53,7 @@ namespace DiabetesApp.API.Controllers
 				{
 					var responseContent = await response.Content.ReadAsStringAsync();
 					var data = JsonSerializer.Deserialize<ExternalAPIResponse>(responseContent);
-					input.HealthStatusScore = (int)data.predictedHealthStatusScore;
+					input.HealthStatusScore = (int)data.predictedHealthConditionScore;
 				}
 				else
 				{
@@ -88,9 +95,6 @@ namespace DiabetesApp.API.Controllers
 			return BadRequest(new ApiResponse(400));
 
 		}
-
-
-
 
 		// update PhysiologicalIndicators (PhysiologicalIndicatorsID ,PhysiologicalIndicatorsDto) => bool
 		[HttpPut("{id}")]
@@ -156,23 +160,62 @@ namespace DiabetesApp.API.Controllers
 
 		}
 		// get allPhysiologicalIndicator() =>IReadOnlyList<PhysiologicalIndicatorAndDateDto>
+
 		[HttpGet("All")]
 		public async Task<ActionResult<IReadOnlyList<PhysiologicalIndicatorAndDateDto>>> GetAllDates()
 		{
 			var spec = new PhysiologicalIndicatorsSpecification();
 			var physios = await _unitOfWork.GetRepo<PhysiologicalIndicators>().GetAllSpecAsync(spec);
+			var patientSpec = new PatientWithAllDataSpec();
+			var patientss = await _unitOfWork.GetRepo<Patient>().GetAllSpecAsync(patientSpec);
+			if (physios is null)
+				return NotFound(new ApiResponse(400));
+			var email = User.FindFirstValue(ClaimTypes.Email);
+			var user = await _userManager.FindByEmailAsync(email);
+			
 
 
-			var mapped = physios.OrderBy(o => o.Date)
-				.GroupBy(g => g.Date)
-				.Select(x => new PhysiologicalIndicatorAndDateDto
+
+			if (user.HospitalId is not null)
+			{
+				var patientHos = patientss.Where(x => x.HospitalId == user.HospitalId).ToList();
+				List<PhysiologicalIndicators> physiosHos = new List<PhysiologicalIndicators>();
+				foreach (var p in physios)
 				{
-					count = physios.Count(x => x.HealthStatus == "Dangerous"),
-					Date = x.Key,
+					if (patientHos.Any(x => x.Id == p.PatientId))
+						physiosHos.Add(p);
+				}
+				var mapp = physiosHos.GroupBy(g => g.Date)
 
-				});
+					.Select(s => new PhysiologicalIndicatorAndDateDto
+					{
+						count = physiosHos.Count(x => x.HealthStatus == "Dangerous" && x.Date == s.Key),
+						Date = s.Key,
+						patients = patientHos.Where(x => x.PhysiologicalIndicatorsList.Any(b => b.HealthStatus == "Dangerous" && b.Date == s.Key)).Select(p => new PatientWithPhysiologicalIndicatorDto
+						{
+							name = p.Name,
+							id = p.Id,
+							code = p.Code,
+							HealthStatusInThisDate = string.Join(", ", physiosHos
+										.Where(x => x.PatientId == p.Id)
+										.Select(x => x.HealthStatus))
+						}).ToList()
+					}).OrderBy(x => x.Date);
+				return Ok(mapp);
+			}
+			var mapped = physios.GroupBy(g => g.Date)
 
-
+					.Select(s => new PhysiologicalIndicatorAndDateDto
+					{
+						count = physios.Count(x => x.HealthStatus == "Dangerous" && x.Date == s.Key),
+						Date = s.Key,
+						patients = patientss.Where(x => x.PhysiologicalIndicatorsList.Any(b => b.HealthStatus == "Dangerous" && b.Date == s.Key)).Select(p => new PatientWithPhysiologicalIndicatorDto
+						{
+							name = p.Name,
+							id = p.Id,
+							code = p.Code
+						}).ToList()
+					}).OrderBy(x => x.Date);
 			return Ok(mapped);
 		}
 

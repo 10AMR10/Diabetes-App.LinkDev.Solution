@@ -56,7 +56,7 @@ namespace DiabetesApp.Repositry.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("hospitals");
+                    b.ToTable("hospitals", (string)null);
                 });
 
             modelBuilder.Entity("DiabetesApp.Core.Enitities.Patient", b =>
@@ -105,7 +105,7 @@ namespace DiabetesApp.Repositry.Data.Migrations
 
                     b.HasIndex("HospitalId");
 
-                    b.ToTable("patients");
+                    b.ToTable("patients", (string)null);
                 });
 
             modelBuilder.Entity("DiabetesApp.Core.Enitities.PhysiologicalIndicators", b =>
@@ -145,7 +145,7 @@ namespace DiabetesApp.Repositry.Data.Migrations
 
                     b.HasIndex("PatientId");
 
-                    b.ToTable("physiologicalIndicators");
+                    b.ToTable("physiologicalIndicators", (string)null);
                 });
 
             modelBuilder.Entity("DiabetesApp.Core.Enitities.Patient", b =>
