@@ -5,7 +5,8 @@ namespace DiabetesApp.API.Dtos
 {
 	public class PatientDto
 	{
-		[Required]
+       
+        [Required]
 		public string Name { get; set; }
 		[Required]
 		public int Age { get; set; }

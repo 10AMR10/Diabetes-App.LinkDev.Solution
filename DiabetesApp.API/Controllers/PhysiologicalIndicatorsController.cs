@@ -139,11 +139,11 @@ namespace DiabetesApp.API.Controllers
 
 		}
 
-		// get by (name ,date1,date2)
-		[HttpGet("{name}/{date1}/{date2}")]
-		public async Task<ActionResult<IReadOnlyList<PhysiologicalIndicatorToRetunrDto>>> GetByDate(string name, DateOnly date1, DateOnly date2)
+		// get by (id ,date1,date2)
+		[HttpGet("{id}/{date1}/{date2}")]
+		public async Task<ActionResult<IReadOnlyList<PhysiologicalIndicatorToRetunrDto>>> GetByDate(int id, DateOnly date1, DateOnly date2)
 		{
-			var spec = new PatientWithAllDataSpec(name);
+			var spec = new PatientWithAllDataSpec(id);
 			var patient = await _unitOfWork.GetRepo<Patient>().GetSpecAsync(spec);
 			if (patient is null)
 				return BadRequest(new ApiResponse(400));
@@ -196,9 +196,7 @@ namespace DiabetesApp.API.Controllers
 							name = p.Name,
 							id = p.Id,
 							code = p.Code,
-							HealthStatusInThisDate = string.Join(", ", physiosHos
-										.Where(x => x.PatientId == p.Id)
-										.Select(x => x.HealthStatus))
+							HealthStatusInThisDate = "Dangerous"
 						}).ToList()
 					}).OrderBy(x => x.Date);
 				return Ok(mapp);
@@ -213,14 +211,20 @@ namespace DiabetesApp.API.Controllers
 						{
 							name = p.Name,
 							id = p.Id,
-							code = p.Code
+							code = p.Code,
+							HealthStatusInThisDate= "Dangerous"
 						}).ToList()
 					}).OrderBy(x => x.Date);
 			return Ok(mapped);
 		}
 
-
-
+		[HttpGet("{id}")]
+		public async Task<ActionResult<PhysiologicalIndicatorToRetunrDto>> GetById(int id)
+		{
+			var phy=await _unitOfWork.GetRepo<PhysiologicalIndicators>().GetByIdAsync(id);
+			var mapped = _mapper.Map<PhysiologicalIndicatorToRetunrDto>(phy);
+			return Ok(mapped);
+		}
 
 
 
