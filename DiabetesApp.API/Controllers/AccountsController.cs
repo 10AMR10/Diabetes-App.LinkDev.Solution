@@ -35,7 +35,7 @@ namespace DiabetesApp.API.Controllers
 			this._unitOfWork = unitOfWork;
 		}
 		// Make Login (Login Dto)
-		[HttpGet("Login")]
+		[HttpPost("Login")]
 		public async Task<ActionResult<UserDto>> Login(LoginDto input)
 			{
 			var user = await _userManager.FindByEmailAsync(input.Email);
@@ -45,12 +45,22 @@ namespace DiabetesApp.API.Controllers
 			var res = await _signInManager.CheckPasswordSignInAsync(user, input.Password, false);
 			if (!res.Succeeded)
 				return BadRequest(new ApiResponse(400, "Wrong Password"));
+			string? hosName = null;
+			if(user.HospitalId is not null)
+			{
+			var hos = await _unitOfWork.GetRepo<Hospitail>().GetByIdAsync(user.HospitalId);
+				hosName = hos.HospitalName;
+			}
+
+			
 			return Ok(new UserDto
 			{
+				Id=user.Id,
 				Email = input.Email,
 
 				UserName = user.UserName,
 				HospitalId = user.HospitalId,
+				HospitalName= hosName,
 				Token = await _tokentService.CreateTokenAsync(user, _userManager),
 				Role = string.Join("", await _userManager.GetRolesAsync(user))
 			});
@@ -83,6 +93,7 @@ namespace DiabetesApp.API.Controllers
 			await _userManager.AddToRoleAsync(user, "Employee");
 			return Ok(new UserDto
 			{
+				
 				Role= string.Join("", await _userManager.GetRolesAsync(user)),
 				UserName = user.UserName,
 				HospitalId = user.HospitalId,
@@ -102,7 +113,8 @@ namespace DiabetesApp.API.Controllers
 				if (role.Contains("Employee"))
 					EmpUsers.Add(user);
 			}
-
+			//var hospitals= await _unitOfWork.GetRepo<Hospitail>().GetAllAsync();
+			//var hosIds
 			var mapped = EmpUsers.Select(async x =>
 			{
 				var hos = await _unitOfWork.GetRepo<Hospitail>().GetByIdAsync(x.HospitalId);
@@ -156,6 +168,7 @@ namespace DiabetesApp.API.Controllers
 			var hos = await _unitOfWork.GetRepo<Hospitail>().GetByIdAsync(user.HospitalId);
 			return Ok(new UserToReturnDto
 			{
+				Id = user.Id,
 				Email = user.Email,
 				UserName = user.UserName,
 				HospitalName = hos is null ? "" : hos.HospitalName

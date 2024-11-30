@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using DiabetesApp.API.Dtos;
 using DiabetesApp.API.External;
+using DiabetesApp.API.Hubs;
 using DiabetesApp.Core.Enitities;
 using DiabetesApp.Core.Enitities.Identity;
 using DiabetesApp.Core.Repositry.contract;
@@ -10,6 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using System.Linq;
@@ -30,13 +32,14 @@ namespace DiabetesApp.API.Controllers
 		private readonly IUnitOfWork _unitOfWork;
 		private readonly HttpClient _client;
 		private readonly UserManager<ApplicationUser> _userManager;
-
-		public PhysiologicalIndicatorsController(IMapper mapper, IUnitOfWork unitOfWork, HttpClient client, UserManager<ApplicationUser> userManager)
+		private readonly IHubContext<ChatHub> _hubContext;
+		public PhysiologicalIndicatorsController(IMapper mapper, IUnitOfWork unitOfWork, HttpClient client, UserManager<ApplicationUser> userManager, IHubContext<ChatHub> hubContext)
 		{
 			this._mapper = mapper;
 			this._unitOfWork = unitOfWork;
 			this._client = client;
 			this._userManager = userManager;
+			this._hubContext= hubContext;
 		}
 		// create PhysiologicalIndicators (PhysiologicalIndicatorsDto) => bool
 		[HttpPost]
@@ -91,15 +94,59 @@ namespace DiabetesApp.API.Controllers
 			await _unitOfWork.GetRepo<PhysiologicalIndicators>().AddAsync(physiologicalIndicators);
 			var res = await _unitOfWork.CompeleteAsync();
 			if (res > 0)
+			{
+				//var hos=_unitOfWork.GetRepo<Hospitail>
+				
+				//var message = "Patient's health status is Dangerous. Immediate attention required.";
+				//await _hubContext.Clients.User(userId).SendAsync("ReceiveMessage", new
+				//{
+				//	Message = message,
+				//	PatientId = patient.Id
+				//});
+
 				return Ok(true);
+			}
 			return BadRequest(new ApiResponse(400));
 
 		}
 
 		// update PhysiologicalIndicators (PhysiologicalIndicatorsID ,PhysiologicalIndicatorsDto) => bool
 		[HttpPut("{id}")]
-		public async Task<ActionResult<bool>> UpdatePhysiologicalIndicators(int id, [FromBody] PhysiologicalIndicatorsDto input)
+		public async Task<ActionResult<bool>> UpdatePhysiologicalIndicators(int id, [FromBody] PhysiologicalIndicatorsToUpdateDtos input)
 		{
+
+			
+			try
+			{
+				var content = new StringContent(JsonSerializer.Serialize(new { sugarPercentage = input.GlucoseLevel, bloodPressure = input.BloodPressure, averageTemprature = input.Temperature }), System.Text.Encoding.UTF8, "application/json");
+				var response = await _client.PostAsync("https://api-model-kohl.vercel.app/predict", content);
+				if (response.IsSuccessStatusCode)
+				{
+					var responseContent = await response.Content.ReadAsStringAsync();
+					var data = JsonSerializer.Deserialize<ExternalAPIResponse>(responseContent);
+					input.HealthStatusScore = (int)data.predictedHealthConditionScore;
+				}
+				else
+				{
+					return StatusCode((int)response.StatusCode, response.ReasonPhrase);
+				}
+			}
+			catch (Exception ex)
+			{
+				return StatusCode(500, $"Internal server error: {ex.Message}");
+			}
+
+
+			if (input.BloodPressure > 140 || input.GlucoseLevel > 125) input.HealthStatus = "Dangerous";
+			else if (input.HealthStatusScore >= 80) input.HealthStatus = "Good";
+			else if (input.HealthStatusScore >= 60) input.HealthStatus = "Stable";
+			else input.HealthStatus = "Unhealthy";
+
+
+
+
+
+
 			var physiologicalIndicators = await _unitOfWork.GetRepo<PhysiologicalIndicators>().GetByIdAsync(id);
 
 			if (physiologicalIndicators is null)
@@ -109,11 +156,11 @@ namespace DiabetesApp.API.Controllers
 			physiologicalIndicators.Time = TimeOnly.Parse(input.Time);
 			physiologicalIndicators.BloodPressure = input.BloodPressure;
 			physiologicalIndicators.GlucoseLevel = input.GlucoseLevel;
-			physiologicalIndicators.HealthStatus = input.HealthStatus;
+			physiologicalIndicators.HealthStatus= input.HealthStatus;
+			physiologicalIndicators.HealthStatusScore = input.HealthStatusScore;
 			physiologicalIndicators.Temperature = input.Temperature;
-			physiologicalIndicators.PatientId = input.PatientId;
-			physiologicalIndicators.Patient = await _unitOfWork.GetRepo<Patient>().GetByIdAsync(input.PatientId);
-
+			
+			
 			_unitOfWork.GetRepo<PhysiologicalIndicators>().Update(physiologicalIndicators);
 			var res = await _unitOfWork.CompeleteAsync();
 			if (res > 0)
@@ -172,7 +219,7 @@ namespace DiabetesApp.API.Controllers
 				return NotFound(new ApiResponse(400));
 			var email = User.FindFirstValue(ClaimTypes.Email);
 			var user = await _userManager.FindByEmailAsync(email);
-			
+
 
 
 
@@ -212,7 +259,7 @@ namespace DiabetesApp.API.Controllers
 							name = p.Name,
 							id = p.Id,
 							code = p.Code,
-							HealthStatusInThisDate= "Dangerous"
+							HealthStatusInThisDate = "Dangerous"
 						}).ToList()
 					}).OrderBy(x => x.Date);
 			return Ok(mapped);
@@ -221,7 +268,7 @@ namespace DiabetesApp.API.Controllers
 		[HttpGet("{id}")]
 		public async Task<ActionResult<PhysiologicalIndicatorToRetunrDto>> GetById(int id)
 		{
-			var phy=await _unitOfWork.GetRepo<PhysiologicalIndicators>().GetByIdAsync(id);
+			var phy = await _unitOfWork.GetRepo<PhysiologicalIndicators>().GetByIdAsync(id);
 			var mapped = _mapper.Map<PhysiologicalIndicatorToRetunrDto>(phy);
 			return Ok(mapped);
 		}
