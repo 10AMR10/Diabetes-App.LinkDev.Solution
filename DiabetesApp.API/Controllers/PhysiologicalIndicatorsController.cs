@@ -28,6 +28,7 @@ namespace DiabetesApp.API.Controllers
 	[ApiController]
 	public class PhysiologicalIndicatorsController : ControllerBase
 	{
+		//5
 		private readonly IMapper _mapper;
 		private readonly IUnitOfWork _unitOfWork;
 		private readonly HttpClient _client;
