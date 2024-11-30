@@ -46,13 +46,34 @@ namespace DiabetesApp.API.Controllers
 			if (patients is null)
 				return NotFound(new { Message = "Patient Not Found", StatusCode = 400 });
 
-			var patientsNameWithHealthStatus = patients.Select(x => new { name = x.Name, LatestHealthStatus = x.LatestHealthStatus }).ToList();
+			var patientsName= patients.Select(x => new {Id=x.Id, Name = x.Name, LatestHealthStatus = x.LatestHealthStatus }).ToList();
 			//var mapped= _mapper.Map<IEnumerable<Patient>,IEnumerable<PatientToReturnDto>>(patients);
 
-			return Ok(patientsNameWithHealthStatus);
+			return Ok(patientsName);
+		}
+		[HttpGet("AllDetails")]
+		public async Task<ActionResult<IReadOnlyList<PatientToReturnDto>>> GetAllPatientsDetails()
+		{
+			var email = User.FindFirstValue(ClaimTypes.Email);
+			var user = await _userManager.FindByEmailAsync(email);
+			var spec = new PatientWithAllDataSpec();
+			var patients = await _unitOfWork.GetRepo<Patient>().GetAllSpecAsync(spec);
+			if (patients is null)
+				return NotFound(new ApiResponse(404));
+			if (user.HospitalId is not null)
+				patients = patients.Where(x => x.HospitalId == user.HospitalId);
+
+			if (patients is null)
+				return NotFound(new { Message = "Patient Not Found", StatusCode = 400 });
+
+			var mapped= _mapper.Map<IReadOnlyList<PatientToReturnDto>>(patients);
+			
+			//var mapped= _mapper.Map<IEnumerable<Patient>,IEnumerable<PatientToReturnDto>>(patients);
+
+			return Ok(mapped);
 		}
 
-		[HttpGet("{name}")]
+		[HttpGet("ByName/{name}")]
 		public async Task<ActionResult<IEnumerable<PhysiologicalIndicatorToRetunrDto>>> GetPatient(string name)
 		{
 
@@ -79,8 +100,18 @@ namespace DiabetesApp.API.Controllers
 			//});
 			return Ok(mapped);
 		}
+
+		[HttpGet("ById/{id}")]
+		public async Task<ActionResult<PatientDto>> GetPatientById(int id)
+		{
+			var patients= await _unitOfWork.GetRepo<Patient>().GetByIdAsync(id);
+			if (patients is null)
+				return NotFound(new ApiResponse(400));
+			var mapped=_mapper.Map<PatientDto>(patients);
+			return Ok(mapped);
+		}
 		// create Patient (PatientDto) => bool
-		
+
 		[HttpPost]
 		public async Task<ActionResult<bool>> CreatePatient([FromBody] PatientDto input)
 		{

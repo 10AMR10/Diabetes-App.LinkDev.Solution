@@ -18,6 +18,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using DiabetesApp.Core.Service.Contract;
 using DiabetesApp.Service;
+using DiabetesApp.API.Hubs;
+using Microsoft.AspNetCore.SignalR;
 
 
 namespace DiabetesApp.API
@@ -32,13 +34,13 @@ namespace DiabetesApp.API
 
 			builder.Services.AddCors(options =>
 			{
-				options.AddPolicy("AllowAll",
-					builder =>
-					{
-						builder.AllowAnyOrigin()
-							   .AllowAnyMethod()
-							   .AllowAnyHeader();
-					});
+				options.AddPolicy("AllowAll", builder =>
+				{
+					builder.AllowAnyOrigin()      // Allow requests from any origin
+						   .AllowAnyMethod()      // Allow any HTTP method (GET, POST, etc.)
+						   .AllowAnyHeader();
+						   
+				});
 			});
 
 			// Add services to the container.
@@ -111,8 +113,8 @@ namespace DiabetesApp.API
 
 			// Register the Token Service
 			builder.Services.AddScoped<ITokentService, TokentService>();
-
-
+			builder.Services.AddSignalR();
+			
 			#endregion
 
 			var app = builder.Build();
@@ -155,7 +157,7 @@ namespace DiabetesApp.API
 
 
 			app.MapControllers();
-
+			app.MapHub<ChatHub>("/Chathub");
 			app.Run();
 		}
 	}

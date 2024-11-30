@@ -35,7 +35,7 @@ namespace DiabetesApp.API.Controllers
 			this._unitOfWork = unitOfWork;
 		}
 		// Make Login (Login Dto)
-		[HttpGet("Login")]
+		[HttpPost("Login")]
 		public async Task<ActionResult<UserDto>> Login(LoginDto input)
 			{
 			var user = await _userManager.FindByEmailAsync(input.Email);
@@ -45,13 +45,24 @@ namespace DiabetesApp.API.Controllers
 			var res = await _signInManager.CheckPasswordSignInAsync(user, input.Password, false);
 			if (!res.Succeeded)
 				return BadRequest(new ApiResponse(400, "Wrong Password"));
+			string? hosName = null;
+			if(user.HospitalId is not null)
+			{
+			var hos = await _unitOfWork.GetRepo<Hospitail>().GetByIdAsync(user.HospitalId);
+				hosName = hos.HospitalName;
+			}
+
+			
 			return Ok(new UserDto
 			{
+				Id=user.Id,
 				Email = input.Email,
-				
+
 				UserName = user.UserName,
 				HospitalId = user.HospitalId,
-				Token = await _tokentService.CreateTokenAsync(user, _userManager)
+				HospitalName= hosName,
+				Token = await _tokentService.CreateTokenAsync(user, _userManager),
+				Role = string.Join("", await _userManager.GetRolesAsync(user))
 			});
 		}
 		// create user  (RegisterDto) => UserDto
@@ -59,23 +70,31 @@ namespace DiabetesApp.API.Controllers
 		[HttpPost]
 		public async Task<ActionResult<UserDto>> CreateUser(RegisterDto input)
 		{
-			if (await _userManager.FindByEmailAsync(input.Email) is not null)
+			if (await _userManager.FindByEmailAsync(input.email) is not null)
 				return BadRequest(new ApiResponse(400, "Dublicated Email"));
 			var user = new ApplicationUser
 			{
-				Email = input.Email,
-				HospitalId = input.HospitalId,
-				UserName = input.UserName,
+				Email = input.email,
+				HospitalId = input.hospitalId ,
+				UserName = input.userName,
 			};
-			var res = await _userManager.CreateAsync(user, input.Password);
+			var res = await _userManager.CreateAsync(user, input.password);
 			if (!res.Succeeded)
-				return BadRequest(new ApiResponse(400));
+			{
+				// Collect detailed error messages
+				var errorDetails = res.Errors
+					.Select(e => $"Code: {e.Code}, Description: {e.Description}")
+					.ToList();
+
+				// Return a detailed BadRequest response
+				return BadRequest(new ApiResponse(400, string.Join(" | ", errorDetails)));
+			}
 
 			await _userManager.AddToRoleAsync(user, "Employee");
 			return Ok(new UserDto
 			{
-				Email = input.Email,
 				
+				Role= string.Join("", await _userManager.GetRolesAsync(user)),
 				UserName = user.UserName,
 				HospitalId = user.HospitalId,
 				Token = await _tokentService.CreateTokenAsync(user, _userManager)
@@ -83,7 +102,7 @@ namespace DiabetesApp.API.Controllers
 		}
 		// get all users () => list of usersDto
 		[Authorize(Roles = "Admin")]
-		[HttpGet("All")]
+		[HttpGet("AllUsers")]
 		public async Task<ActionResult<IReadOnlyList<UserDto>>> GetAllUsers()
 		{
 			var users = await _userManager.Users.ToListAsync();
@@ -94,28 +113,50 @@ namespace DiabetesApp.API.Controllers
 				if (role.Contains("Employee"))
 					EmpUsers.Add(user);
 			}
-			var mapped = await Task.WhenAll(EmpUsers.Select(async x =>
+			//var hospitals= await _unitOfWork.GetRepo<Hospitail>().GetAllAsync();
+			//var hosIds
+			var mapped = EmpUsers.Select(async x =>
 			{
 				var hos = await _unitOfWork.GetRepo<Hospitail>().GetByIdAsync(x.HospitalId);
 				return new UserToReturnDto
 				{
+					Id = x.Id,
 					Email = x.Email,
 					UserName = x.UserName,
-					HospitalName = hos?.HospitalName
+					HospitalName = hos?.HospitalName,
+					HospitalId = hos?.Id,
+					
 				};
-			}));
-			return Ok(mapped);
+			});
+			var userDto = mapped.Select(x => new UserToReturnDto
+			{
+				Id = x.Result.Id,
+				Email = x.Result.Email,
+				UserName = x.Result.UserName,
+				HospitalId = x.Result.HospitalId,
+				HospitalName = x.Result.HospitalName,
+				Role = "Employee"
+			});
+			return Ok(userDto);
 		}
 		[Authorize(Roles = "Admin")]
-		[HttpDelete("{email}")]
+		[HttpDelete("Delete/{email}")]
 		public async Task<ActionResult<bool>> DeleteUser(string email)
 		{
-			var user = await _userManager.FindByIdAsync(email);
+			var user = await _userManager.FindByEmailAsync(email);
 			if (user is null)
 				return BadRequest(new ApiResponse(400));
 			var res = await _userManager.DeleteAsync(user);
 			if (!res.Succeeded)
-				return BadRequest(new ApiResponse(400));
+			{
+				// Collect detailed error messages
+				var errorDetails = res.Errors
+					.Select(e => $"Code: {e.Code}, Description: {e.Description}")
+					.ToList();
+
+				// Return a detailed BadRequest response
+				return BadRequest(new ApiResponse(400, string.Join(" | ", errorDetails)));
+			}
 			return Ok(true);
 		}
 		[Authorize(Roles = "Admin, Employee")]
@@ -127,6 +168,7 @@ namespace DiabetesApp.API.Controllers
 			var hos = await _unitOfWork.GetRepo<Hospitail>().GetByIdAsync(user.HospitalId);
 			return Ok(new UserToReturnDto
 			{
+				Id = user.Id,
 				Email = user.Email,
 				UserName = user.UserName,
 				HospitalName = hos is null ? "" : hos.HospitalName

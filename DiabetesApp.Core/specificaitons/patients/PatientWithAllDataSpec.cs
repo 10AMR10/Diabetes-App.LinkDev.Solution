@@ -15,7 +15,7 @@ namespace DiabetesApp.Core.specificaitons.patients
 			GetIncludes();
 		}
 
-		public PatientWithAllDataSpec(string name) :base(x=> x.Name == name)
+		public PatientWithAllDataSpec(int id) :base(x=> x.Id == id)
 		{
 			GetIncludes();
 		}
