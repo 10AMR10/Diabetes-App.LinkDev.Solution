@@ -1,0 +1,105 @@
+[
+  {
+    "Name": "Alice Johnson",
+    "Age": 30,
+    "Gender": "Female",
+    "PhoneNumber": "123-456-7890",
+    "BirthCount": 2,
+    "IsPregnant": false,
+    "Address": "123 Maple St, Springfield, IL",
+    "HospitalId": 1,
+    "PhysiologicalIndicatorsList": [
+      {
+        "Date": "2024-11-01",
+        "Time": "09:00:00",
+        "HealthStatus": "Stable",
+        "GlucoseLevel": 90.5,
+        "BloodPressure": 120.0,
+        "Temperature": 98.6,
+        "PatientId": 1
+      },
+      {
+        "Date": "2024-11-01",
+        "Time": "15:00:00",
+        "HealthStatus": "Stable",
+        "GlucoseLevel": 85.2,
+        "BloodPressure": 118.0,
+        "Temperature": 98.7,
+        "PatientId": 1
+      }
+    ]
+  },
+  {
+    "Name": "Bob Smith",
+    "Age": 45,
+    "Gender": "Male",
+    "PhoneNumber": "987-654-3210",
+    "BirthCount": 0,
+    "IsPregnant": false,
+    "Address": "456 Oak St, Springfield, IL",
+    "HospitalId": 1,
+    "PhysiologicalIndicatorsList": [
+      {
+        "Date": "2024-11-01",
+        "Time": "10:00:00",
+        "HealthStatus": "Good",
+        "GlucoseLevel": 110.0,
+        "BloodPressure": 130.0,
+        "Temperature": 98.7,
+        "PatientId": 2
+      }
+    ]
+  },
+  {
+    "Name": "Cathy Williams",
+    "Age": 28,
+    "Gender": "Female",
+    "PhoneNumber": "555-123-4567",
+    "BirthCount": 1,
+    "IsPregnant": true,
+    "Address": "789 Pine St, Springfield, IL",
+    "HospitalId": 2,
+    "PhysiologicalIndicatorsList": [
+      {
+        "Date": "2024-11-01",
+        "Time": "11:00:00",
+        "HealthStatus": "Monitoring",
+        "GlucoseLevel": 92.3,
+        "BloodPressure": 115.0,
+        "Temperature": 99.1,
+        "PatientId": 3
+      }
+    ]
+  },
+  {
+    "Name": "David Brown",
+    "Age": 60,
+    "Gender": "Male",
+    "PhoneNumber": "444-555-6666",
+    "BirthCount": 3,
+    "IsPregnant": false,
+    "Address": "321 Birch St, Springfield, IL",
+    "HospitalId": 2,
+    "PhysiologicalIndicatorsList": [
+      {
+        "Date": "2024-11-01",
+        "Time": "12:00:00",
+        "HealthStatus": "Needs Attention",
+        "GlucoseLevel": 150.0,
+        "BloodPressure": 140.0,
+        "Temperature": 98.5,
+        "PatientId": 4
+      },
+      {
+        "Date": "2024-11-01",
+        "Time": "18:00:00",
+        "HealthStatus": "Stable",
+        "GlucoseLevel": 145.0,
+        "BloodPressure": 138.0,
+        "Temperature": 98.6,
+        "PatientId": 4
+      }
+    ]
+  }
+]
+
