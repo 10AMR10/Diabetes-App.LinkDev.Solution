@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using DiabetesApp.API.Dtos;
 using DiabetesApp.Core.Enitities;
 using DiabetesApp.Core.Enitities.Identity;
@@ -78,26 +78,30 @@ namespace DiabetesApp.API.Controllers
 		}
 		[Authorize(Roles = "Admin")]
 		[HttpGet("{id}")]
-		public async Task<ActionResult<Hospitail>?> GetHospitail(int id)
+		public async Task<ActionResult<HospitalToReturnDto>> GetHospitail(int id)
 		{
 			var hospital=await _unitOfWork.GetRepo<Hospitail>().GetByIdAsync(id);
-			var mapped=_mapper.Map<HospitalToReturnDto>(hospital);
 
 			if (hospital is null)
 				return NotFound(new ApiResponse(404));
+			var mapped=_mapper.Map<HospitalToReturnDto>(hospital);
 			return Ok(mapped);
 		}
 		[Authorize(Roles = "Admin, Employee")]
 		[HttpGet("All")]
-		public async Task<ActionResult<IEnumerable<Hospitail>>> GetHospitails()
+		public async Task<ActionResult<IEnumerable<HospitalToReturnDto>>> GetHospitails()
 		{
 			var email = User.FindFirstValue(ClaimTypes.Email);
+			if (email is null)
+				return Unauthorized(new ApiResponse(401));
 			var user = await _userManager.FindByEmailAsync(email);
+			if (user is null)
+				return NotFound(new ApiResponse(404, "User not found"));
 			var hospitals = await _unitOfWork.GetRepo<Hospitail>().GetAllAsync();
-			if (user.HospitalId is not null)
-				hospitals = hospitals.Where(x => x.Id == user.HospitalId);
 			if (hospitals is null)
 				return NotFound(new ApiResponse(404));
+			if (user.HospitalId is not null)
+				hospitals = hospitals.Where(x => x.Id == user.HospitalId);
 			var mapped=_mapper.Map<IEnumerable<HospitalToReturnDto>>(hospitals);
 			return Ok(mapped);
 		}

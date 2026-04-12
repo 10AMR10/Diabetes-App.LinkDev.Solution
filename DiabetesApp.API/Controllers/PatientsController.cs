@@ -1,15 +1,13 @@
-﻿using AutoMapper;
+using AutoMapper;
 using DiabetesApp.API.Dtos;
 using DiabetesApp.Core.Enitities;
 using DiabetesApp.Core.Enitities.Identity;
 using DiabetesApp.Core.Repositry.contract;
-using DiabetesApp.Core.specificaitons;
 using DiabetesApp.Core.specificaitons.patients;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System.Security.Claims;
 using Talabat.APIs.Errors;
 
@@ -36,18 +34,18 @@ namespace DiabetesApp.API.Controllers
 		public async Task<ActionResult<IEnumerable<string>>> GetAllPatients()
 		{
 			var email = User.FindFirstValue(ClaimTypes.Email);
+			if (email is null)
+				return Unauthorized(new ApiResponse(401));
 			var user = await _userManager.FindByEmailAsync(email);
+			if (user is null)
+				return NotFound(new ApiResponse(404, "User not found"));
 			var patients = await _unitOfWork.GetRepo<Patient>().GetAllAsync();
 			if (patients is null)
 				return NotFound(new ApiResponse(404));
 			if (user.HospitalId is not null)
 				patients = patients.Where(x => x.HospitalId == user.HospitalId);
 
-			if (patients is null)
-				return NotFound(new { Message = "Patient Not Found", StatusCode = 400 });
-
 			var patientsName= patients.Select(x => new {Id=x.Id, Name = x.Name, LatestHealthStatus = x.LatestHealthStatus }).ToList();
-			//var mapped= _mapper.Map<IEnumerable<Patient>,IEnumerable<PatientToReturnDto>>(patients);
 
 			return Ok(patientsName);
 		}
@@ -55,7 +53,11 @@ namespace DiabetesApp.API.Controllers
 		public async Task<ActionResult<IReadOnlyList<PatientToReturnDto>>> GetAllPatientsDetails()
 		{
 			var email = User.FindFirstValue(ClaimTypes.Email);
+			if (email is null)
+				return Unauthorized(new ApiResponse(401));
 			var user = await _userManager.FindByEmailAsync(email);
+			if (user is null)
+				return NotFound(new ApiResponse(404, "User not found"));
 			var spec = new PatientWithAllDataSpec();
 			var patients = await _unitOfWork.GetRepo<Patient>().GetAllSpecAsync(spec);
 			if (patients is null)
@@ -63,12 +65,7 @@ namespace DiabetesApp.API.Controllers
 			if (user.HospitalId is not null)
 				patients = patients.Where(x => x.HospitalId == user.HospitalId);
 
-			if (patients is null)
-				return NotFound(new { Message = "Patient Not Found", StatusCode = 400 });
-
 			var mapped= _mapper.Map<IReadOnlyList<PatientToReturnDto>>(patients);
-			
-			//var mapped= _mapper.Map<IEnumerable<Patient>,IEnumerable<PatientToReturnDto>>(patients);
 
 			return Ok(mapped);
 		}
@@ -77,9 +74,12 @@ namespace DiabetesApp.API.Controllers
 		public async Task<ActionResult<IEnumerable<PhysiologicalIndicatorToRetunrDto>>> GetPatient(string name)
 		{
 
-
 			var email = User.FindFirstValue(ClaimTypes.Email);
+			if (email is null)
+				return Unauthorized(new ApiResponse(401));
 			var user = await _userManager.FindByEmailAsync(email);
+			if (user is null)
+				return NotFound(new ApiResponse(404, "User not found"));
 			var spec = new PatientWithAllDataSpec();
 			var patients = await _unitOfWork.GetRepo<Patient>().GetAllSpecAsync(spec);
 
@@ -91,13 +91,6 @@ namespace DiabetesApp.API.Controllers
 			if (patient is null)
 				return NotFound(new ApiResponse(404, "Patient Is Not Exist"));
 			var mapped = _mapper.Map<IEnumerable<PhysiologicalIndicatorToRetunrDto>>(patient.PhysiologicalIndicatorsList);
-			//var physiologicalIndicators = Patients.PhysiologicalIndicatorsList.Select(x => new PhysiologicalIndicatorDto
-			//{
-			//	Time = x.Time,
-			//	Date = x.Date,
-			//	GlucoseLevel = x.GlucoseLevel,
-
-			//});
 			return Ok(mapped);
 		}
 
@@ -117,7 +110,10 @@ namespace DiabetesApp.API.Controllers
 		{
 			
 			var patient = _mapper.Map<Patient>(input);
-			patient.Hospital = await _unitOfWork.GetRepo<Hospitail>().GetByIdAsync(input.HospitalId);
+			var hospital = await _unitOfWork.GetRepo<Hospitail>().GetByIdAsync(input.HospitalId);
+			if (hospital is null)
+				return BadRequest(new ApiResponse(400, "Hospital not found"));
+			patient.Hospital = hospital;
 
 			await _unitOfWork.GetRepo<Patient>().AddAsync(patient);
 			var res = await _unitOfWork.CompeleteAsync();
@@ -137,7 +133,10 @@ namespace DiabetesApp.API.Controllers
 				return NotFound(new ApiResponse(404));
 
 			_mapper.Map(input, patient);
-			patient.Hospital = await _unitOfWork.GetRepo<Hospitail>().GetByIdAsync(input.HospitalId);
+			var hospital = await _unitOfWork.GetRepo<Hospitail>().GetByIdAsync(input.HospitalId);
+			if (hospital is null)
+				return BadRequest(new ApiResponse(400, "Hospital not found"));
+			patient.Hospital = hospital;
 
 			_unitOfWork.GetRepo<Patient>().Update(patient);
 			var res = await _unitOfWork.CompeleteAsync();

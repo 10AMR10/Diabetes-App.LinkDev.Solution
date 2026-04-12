@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using DiabetesApp.API.Dtos;
 using DiabetesApp.Core.Enitities;
 
@@ -17,7 +17,7 @@ namespace DiabetesApp.API.Helpers
             CreateMap<PatientDto, Patient>().ReverseMap();
             CreateMap<PhysiologicalIndicatorsDto, PhysiologicalIndicators>()
             .ForMember(d => d.Date, o => o.MapFrom(s => DateOnly.Parse(s.Date)))
-            .ForMember(d => d.Time, o => o.MapFrom(s => DateOnly.Parse(s.Time)));
+            .ForMember(d => d.Time, o => o.MapFrom(s => TimeOnly.Parse(s.Time)));
 
 
 		}

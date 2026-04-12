@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using DiabetesApp.API.Dtos;
 using DiabetesApp.API.External;
 using DiabetesApp.API.Hubs;
@@ -12,23 +12,19 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
-using System.Linq;
 using System.Security.Claims;
 using System.Text.Json;
 using Talabat.APIs.Errors;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 
 namespace DiabetesApp.API.Controllers
 {
-	[Authorize(Roles = "Admin, Employee")]
+	//[Authorize(Roles = "Admin, Employee")]
 	[Route("api/[controller]")]
 	[ApiController]
 	public class PhysiologicalIndicatorsController : ControllerBase
 	{
-		//5
+		//hiiiiiiiiiiiii antigravity	
 		private readonly IMapper _mapper;
 		private readonly IUnitOfWork _unitOfWork;
 		private readonly HttpClient _client;
@@ -40,7 +36,7 @@ namespace DiabetesApp.API.Controllers
 			this._unitOfWork = unitOfWork;
 			this._client = client;
 			this._userManager = userManager;
-			this._hubContext= hubContext;
+			this._hubContext = hubContext;
 		}
 		// create PhysiologicalIndicators (PhysiologicalIndicatorsDto) => bool
 		[HttpPost]
@@ -57,7 +53,8 @@ namespace DiabetesApp.API.Controllers
 				{
 					var responseContent = await response.Content.ReadAsStringAsync();
 					var data = JsonSerializer.Deserialize<ExternalAPIResponse>(responseContent);
-					input.HealthStatusScore = (int)data.predictedHealthConditionScore;
+					if (data is not null)
+						input.HealthStatusScore = (int)data.predictedHealthConditionScore;
 				}
 				else
 				{
@@ -86,7 +83,7 @@ namespace DiabetesApp.API.Controllers
 				BloodPressure = input.BloodPressure,
 				GlucoseLevel = input.GlucoseLevel,
 				HealthStatusScore = input.HealthStatusScore,
-				HealthStatus = input.HealthStatus,
+				HealthStatus = input.HealthStatus ?? "Unknown",
 				Temperature = input.Temperature,
 				PatientId = input.PatientId,
 			};
@@ -96,14 +93,18 @@ namespace DiabetesApp.API.Controllers
 			var res = await _unitOfWork.CompeleteAsync();
 			if (res > 0)
 			{
-				//var hos=_unitOfWork.GetRepo<Hospitail>
-				
-				//var message = "Patient's health status is Dangerous. Immediate attention required.";
-				//await _hubContext.Clients.User(userId).SendAsync("ReceiveMessage", new
-				//{
-				//	Message = message,
-				//	PatientId = patient.Id
-				//});
+				if (input.HealthStatus == "Dangerous")
+				{
+					var notification = new
+					{
+						Message = "Patient's health status is Dangerous. Immediate attention required.",
+						PatientName=patient.Name,
+						PatientId = input.PatientId  // Add the patientId to the notification payload
+					};
+					await _hubContext.Clients.All.SendAsync("CriticalPatient", notification);
+
+					
+				}
 
 				return Ok(true);
 			}
@@ -116,7 +117,7 @@ namespace DiabetesApp.API.Controllers
 		public async Task<ActionResult<bool>> UpdatePhysiologicalIndicators(int id, [FromBody] PhysiologicalIndicatorsToUpdateDtos input)
 		{
 
-			
+
 			try
 			{
 				var content = new StringContent(JsonSerializer.Serialize(new { sugarPercentage = input.GlucoseLevel, bloodPressure = input.BloodPressure, averageTemprature = input.Temperature }), System.Text.Encoding.UTF8, "application/json");
@@ -125,7 +126,8 @@ namespace DiabetesApp.API.Controllers
 				{
 					var responseContent = await response.Content.ReadAsStringAsync();
 					var data = JsonSerializer.Deserialize<ExternalAPIResponse>(responseContent);
-					input.HealthStatusScore = (int)data.predictedHealthConditionScore;
+					if (data is not null)
+						input.HealthStatusScore = (int)data.predictedHealthConditionScore;
 				}
 				else
 				{
@@ -157,15 +159,29 @@ namespace DiabetesApp.API.Controllers
 			physiologicalIndicators.Time = TimeOnly.Parse(input.Time);
 			physiologicalIndicators.BloodPressure = input.BloodPressure;
 			physiologicalIndicators.GlucoseLevel = input.GlucoseLevel;
-			physiologicalIndicators.HealthStatus= input.HealthStatus;
+			physiologicalIndicators.HealthStatus = input.HealthStatus ?? "Unknown";
 			physiologicalIndicators.HealthStatusScore = input.HealthStatusScore;
 			physiologicalIndicators.Temperature = input.Temperature;
-			
-			
+
+
 			_unitOfWork.GetRepo<PhysiologicalIndicators>().Update(physiologicalIndicators);
 			var res = await _unitOfWork.CompeleteAsync();
+			var patient = await _unitOfWork.GetRepo<Patient>().GetByIdAsync(physiologicalIndicators.PatientId);
 			if (res > 0)
+			{
+				if (input.HealthStatus == "Dangerous")
+				{
+					var notification = new
+					{
+						Message = "Patient's health status is Dangerous. Immediate attention required.",
+						PatientName=patient?.Name,
+						PatientId = patient?.Id  // Add the patientId to the notification payload
+					};
+					await _hubContext.Clients.All.SendAsync("CriticalPatient", notification);
+				}
+
 				return Ok(true);
+			}
 			return BadRequest(new ApiResponse(400));
 
 		}
@@ -195,10 +211,7 @@ namespace DiabetesApp.API.Controllers
 			var patient = await _unitOfWork.GetRepo<Patient>().GetSpecAsync(spec);
 			if (patient is null)
 				return BadRequest(new ApiResponse(400));
-			//var patientId = patient.Id;
-			//var spec
 
-			//var physiologicalIndicator = await _unitOfWork.GetRepo<PhysiologicalIndicators>().GetSpecAsync
 			var phy = patient.PhysiologicalIndicatorsList?.Where(x => x.Date > date1 && x.Date < date2);
 			if (phy is null)
 				return BadRequest(new ApiResponse(400));
@@ -219,14 +232,17 @@ namespace DiabetesApp.API.Controllers
 			if (physios is null)
 				return NotFound(new ApiResponse(400));
 			var email = User.FindFirstValue(ClaimTypes.Email);
+			if (email is null)
+				return Unauthorized(new ApiResponse(401));
 			var user = await _userManager.FindByEmailAsync(email);
-
+			if (user is null)
+				return NotFound(new ApiResponse(404, "User not found"));
 
 
 
 			if (user.HospitalId is not null)
 			{
-				var patientHos = patientss.Where(x => x.HospitalId == user.HospitalId).ToList();
+				var patientHos = (patientss ?? Enumerable.Empty<Patient>()).Where(x => x.HospitalId == user.HospitalId).ToList();
 				List<PhysiologicalIndicators> physiosHos = new List<PhysiologicalIndicators>();
 				foreach (var p in physios)
 				{
@@ -239,27 +255,28 @@ namespace DiabetesApp.API.Controllers
 					{
 						count = physiosHos.Count(x => x.HealthStatus == "Dangerous" && x.Date == s.Key),
 						Date = s.Key,
-						patients = patientHos.Where(x => x.PhysiologicalIndicatorsList.Any(b => b.HealthStatus == "Dangerous" && b.Date == s.Key)).Select(p => new PatientWithPhysiologicalIndicatorDto
+						patients = patientHos.Where(x => (x.PhysiologicalIndicatorsList ?? new HashSet<PhysiologicalIndicators>()).Any(b => b.HealthStatus == "Dangerous" && b.Date == s.Key)).Select(p => new PatientWithPhysiologicalIndicatorDto
 						{
 							name = p.Name,
 							id = p.Id,
-							code = p.Code,
+							code = p.Code ?? "",
 							HealthStatusInThisDate = "Dangerous"
 						}).ToList()
 					}).OrderBy(x => x.Date);
 				return Ok(mapp);
 			}
+			var allPatients = patientss ?? Enumerable.Empty<Patient>();
 			var mapped = physios.GroupBy(g => g.Date)
 
 					.Select(s => new PhysiologicalIndicatorAndDateDto
 					{
 						count = physios.Count(x => x.HealthStatus == "Dangerous" && x.Date == s.Key),
 						Date = s.Key,
-						patients = patientss.Where(x => x.PhysiologicalIndicatorsList.Any(b => b.HealthStatus == "Dangerous" && b.Date == s.Key)).Select(p => new PatientWithPhysiologicalIndicatorDto
+						patients = allPatients.Where(x => (x.PhysiologicalIndicatorsList ?? new HashSet<PhysiologicalIndicators>()).Any(b => b.HealthStatus == "Dangerous" && b.Date == s.Key)).Select(p => new PatientWithPhysiologicalIndicatorDto
 						{
 							name = p.Name,
 							id = p.Id,
-							code = p.Code,
+							code = p.Code ?? "",
 							HealthStatusInThisDate = "Dangerous"
 						}).ToList()
 					}).OrderBy(x => x.Date);
@@ -270,11 +287,36 @@ namespace DiabetesApp.API.Controllers
 		public async Task<ActionResult<PhysiologicalIndicatorToRetunrDto>> GetById(int id)
 		{
 			var phy = await _unitOfWork.GetRepo<PhysiologicalIndicators>().GetByIdAsync(id);
+			if (phy is null)
+				return NotFound(new ApiResponse(404));
 			var mapped = _mapper.Map<PhysiologicalIndicatorToRetunrDto>(phy);
 			return Ok(mapped);
 		}
 
 
+		[HttpPost("send-test-notification")]
+		public async Task<ActionResult<bool>> SendTestNotification(int patientId)
+		{
+			try
+			{
+				var patient =await _unitOfWork.GetRepo<Patient>().GetByIdAsync(patientId);
+				var notification = new
+				{
+					Message = "the patient is in critical",
+					PatientName = patient?.Name,
+					PatientId = patientId  // Add the patientId to the notification payload
+				};
+				await _hubContext.Clients.All.SendAsync("CriticalPatient", notification);
+
+				return Ok(true); // Notification sent successfully
+			}
+			catch (Exception ex)
+			{
+				return StatusCode(500, $"Internal server error: {ex.Message}");
+			}
+		}
+
+		// Your existing CreatePhysiologicalIndicators method can stay the same
 
 
 

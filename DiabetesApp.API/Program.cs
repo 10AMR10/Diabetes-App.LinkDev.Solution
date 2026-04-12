@@ -7,11 +7,9 @@ using DiabetesApp.Repositry.Identity.Seeding;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.ComponentModel;
 using System.Text.Json.Serialization;
 using Talabat.APIs.Errors;
 using System.Text.Json;
-using System.Runtime.Intrinsics.X86;
 using DiabetesApp.Core.Enitities.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -72,8 +70,8 @@ namespace DiabetesApp.API
 			{
 				option.InvalidModelStateResponseFactory = (actionContext) =>
 				{
-					var Errors = actionContext.ModelState.Where(x => x.Value.Errors.Count() > 0)
-						.SelectMany(e => e.Value.Errors)
+					var Errors = actionContext.ModelState.Where(x => x.Value!.Errors.Count() > 0)
+						.SelectMany(e => e.Value!.Errors)
 						.Select(m => m.ErrorMessage).ToList();
 					var response = new ValidationErrorApiResponse()
 					{
@@ -105,7 +103,7 @@ namespace DiabetesApp.API
 						ValidAudience = builder.Configuration["JWT:ValidAudience"],
 						ValidateLifetime = true,
 						ValidateIssuerSigningKey = true,
-						IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"])),
+						IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"] ?? throw new InvalidOperationException("JWT:Key is not configured"))),
 						ClockSkew = TimeSpan.Zero
 					};
 				}); 
