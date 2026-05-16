@@ -1,4 +1,4 @@
-﻿using DiabetesApp.Core.Enitities.Identity;
+using DiabetesApp.Core.Enitities.Identity;
 using DiabetesApp.Core.Service.Contract;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
@@ -39,7 +39,7 @@ namespace DiabetesApp.Service
 			// anotherclaims
 			var Token = new JwtSecurityToken(
 				issuer: configuration["JWT:ValidIssuer"],
-				audience: configuration["JWT:validAudience"],
+				audience: configuration["JWT:ValidAudience"],
 				expires: DateTime.Now.AddDays(double.Parse(configuration["JWT:DurationInDays"])),
 				claims: authClaims,
 				signingCredentials: new SigningCredentials(authKey, SecurityAlgorithms.HmacSha256Signature)

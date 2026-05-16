@@ -18,26 +18,51 @@ using DiabetesApp.Core.Service.Contract;
 using DiabetesApp.Service;
 using DiabetesApp.API.Hubs;
 using Microsoft.AspNetCore.SignalR;
+using AutoMapper;
 
 
 namespace DiabetesApp.API
 {
 	public class Program
 	{
+		private static void ValidateRequiredConfiguration(IConfiguration configuration)
+		{
+			if (string.IsNullOrWhiteSpace(configuration.GetConnectionString("DefaultConnection")))
+				throw new InvalidOperationException(
+					"ConnectionStrings:DefaultConnection is not set. Local: dotnet user-secrets set \"ConnectionStrings:DefaultConnection\" \"...\". Host: set ConnectionStrings__DefaultConnection.");
+			if (string.IsNullOrWhiteSpace(configuration.GetConnectionString("IdentityConnection")))
+				throw new InvalidOperationException(
+					"ConnectionStrings:IdentityConnection is not set. Local: dotnet user-secrets set \"ConnectionStrings:IdentityConnection\" \"...\". Host: set ConnectionStrings__IdentityConnection.");
+			if (string.IsNullOrWhiteSpace(configuration["JWT:Key"]))
+				throw new InvalidOperationException(
+					"JWT:Key is not set. Local: dotnet user-secrets set \"JWT:Key\" \"...\". Host: set JWT__Key (use a long random secret).");
+			if (string.IsNullOrWhiteSpace(configuration["JWT:ValidIssuer"]))
+				throw new InvalidOperationException("JWT:ValidIssuer is not set. Host: JWT__ValidIssuer.");
+			if (string.IsNullOrWhiteSpace(configuration["JWT:ValidAudience"]))
+				throw new InvalidOperationException("JWT:ValidAudience is not set. Host: JWT__ValidAudience.");
+		}
+
 		public async static Task Main(string[] args)
 		{
 			// hello step 2
 			#region Services
 			var builder = WebApplication.CreateBuilder(args);
+			ValidateRequiredConfiguration(builder.Configuration);
+
+			var corsOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
+			if (corsOrigins is null || corsOrigins.Length == 0)
+			{
+				corsOrigins = new[] { "http://localhost:4200", "https://localhost:4200" };
+			}
 
 			builder.Services.AddCors(options =>
 			{
-				options.AddPolicy("AllowAll", builder =>
+				options.AddPolicy("AllowAll", policy =>
 				{
-					builder.AllowAnyOrigin()      // Allow requests from any origin
-						   .AllowAnyMethod()      // Allow any HTTP method (GET, POST, etc.)
-						   .AllowAnyHeader();
-						   
+					policy.WithOrigins(corsOrigins)
+						  .AllowAnyMethod()
+						  .AllowAnyHeader()
+						  .AllowCredentials();
 				});
 			});
 
@@ -80,7 +105,10 @@ namespace DiabetesApp.API
 					return new BadRequestObjectResult(response);
 				};
 			});
-			builder.Services.AddAutoMapper(typeof(MappingProfile));
+			builder.Services.AddAutoMapper(cfg =>
+			{
+				cfg.AddProfile<MappingProfile>();
+			});
 			builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 			builder.Services.AddHttpClient();
 			#region Identity
