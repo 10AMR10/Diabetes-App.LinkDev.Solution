@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.SignalR;
+using Microsoft.AspNetCore.SignalR;
 
 namespace DiabetesApp.API.Hubs
 {
@@ -30,7 +30,7 @@ namespace DiabetesApp.API.Hubs
 				PatientName=patientName,	
 				PatientId = patientId  // Add the patientId to the notification payload
 			};
-		await Clients.All.SendAsync("CriticalPatient", patientId);
+		await Clients.All.SendAsync("CriticalPatient", notification);
 		}
 
 

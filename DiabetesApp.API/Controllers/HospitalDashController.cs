@@ -76,8 +76,21 @@ namespace DiabetesApp.API.Controllers
 			return BadRequest(new ApiResponse(400));
 
 		}
+		/// <summary>
+		/// Minimal hospital list for self-registration (no auth).
+		/// </summary>
+		[AllowAnonymous]
+		[HttpGet("RegisterLookup")]
+		public async Task<ActionResult<IEnumerable<object>>> GetHospitalsForRegistration()
+		{
+			var hospitals = await _unitOfWork.GetRepo<Hospitail>().GetAllAsync();
+			if (hospitals is null)
+				return Ok(Array.Empty<object>());
+			return Ok(hospitals.Select(h => new { id = h.Id, hospitalName = h.HospitalName }));
+		}
+
 		[Authorize(Roles = "Admin")]
-		[HttpGet("{id}")]
+		[HttpGet("{id:int}")]
 		public async Task<ActionResult<HospitalToReturnDto>> GetHospitail(int id)
 		{
 			var hospital=await _unitOfWork.GetRepo<Hospitail>().GetByIdAsync(id);

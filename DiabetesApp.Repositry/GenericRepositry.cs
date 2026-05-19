@@ -1,4 +1,4 @@
-﻿using DiabetesApp.Core.Enitities;
+using DiabetesApp.Core.Enitities;
 using DiabetesApp.Core.Repositry.contract;
 using DiabetesApp.Core.specificaitons;
 using DiabetesApp.Repositry.Data;
@@ -35,6 +35,7 @@ namespace DiabetesApp.Repositry
 		}
 		public async Task<T?> GetByIdAsync(int? id)
 		{
+			if (id == null) return null;
 			return await _hospitalContext.Set<T>().FindAsync(id);
 		}
 		public async Task AddAsync(T entity)

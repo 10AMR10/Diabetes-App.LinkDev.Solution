@@ -93,7 +93,8 @@ namespace DiabetesApp.API.Controllers
 			return Ok(new UserDto
 			{
 				Id = user.Id,
-				Role= string.Join("", await _userManager.GetRolesAsync(user)),
+				Email = user.Email ?? "",
+				Role = string.Join("", await _userManager.GetRolesAsync(user)),
 				UserName = user.UserName ?? "",
 				HospitalId = user.HospitalId,
 				Token = await _tokentService.CreateTokenAsync(user, _userManager)
@@ -102,7 +103,7 @@ namespace DiabetesApp.API.Controllers
 		// get all users () => list of usersDto
 		[Authorize(Roles = "Admin")]
 		[HttpGet("AllUsers")]
-		public async Task<ActionResult<IReadOnlyList<UserDto>>> GetAllUsers()
+		public async Task<ActionResult<IEnumerable<UserToReturnDto>>> GetAllUsers()
 		{
 			var users = await _userManager.Users.ToListAsync();
 			List<ApplicationUser> EmpUsers = new List<ApplicationUser>();
@@ -122,20 +123,11 @@ namespace DiabetesApp.API.Controllers
 					UserName = x.UserName ?? "",
 					HospitalName = hos?.HospitalName,
 					HospitalId = hos?.Id,
-					
+					Role = "Employee"
 				};
 			});
 			var results = await Task.WhenAll(mapped);
-			var userDto = results.Select(x => new UserToReturnDto
-			{
-				Id = x.Id,
-				Email = x.Email,
-				UserName = x.UserName,
-				HospitalId = x.HospitalId,
-				HospitalName = x.HospitalName,
-				Role = "Employee"
-			});
-			return Ok(userDto);
+			return Ok(results);
 		}
 		[Authorize(Roles = "Admin")]
 		[HttpDelete("Delete/{email}")]
@@ -159,7 +151,7 @@ namespace DiabetesApp.API.Controllers
 		}
 		[Authorize(Roles = "Admin, Employee")]
 		[HttpGet("CurrentUser")]
-		public async Task<ActionResult<UserDto>> GetCurrentUser()
+		public async Task<ActionResult<UserToReturnDto>> GetCurrentUser()
 		{
 			var email = User.FindFirstValue(ClaimTypes.Email);
 			if (email is null)
@@ -168,12 +160,15 @@ namespace DiabetesApp.API.Controllers
 			if (user is null)
 				return NotFound(new ApiResponse(404, "User not found"));
 			var hos = await _unitOfWork.GetRepo<Hospitail>().GetByIdAsync(user.HospitalId);
+			var roles = await _userManager.GetRolesAsync(user);
 			return Ok(new UserToReturnDto
 			{
 				Id = user.Id,
 				Email = user.Email ?? "",
 				UserName = user.UserName ?? "",
-				HospitalName = hos is null ? "" : hos.HospitalName
+				HospitalId = user.HospitalId,
+				HospitalName = hos is null ? "" : hos.HospitalName,
+				Role = string.Join("", roles)
 			});
 		}
 
